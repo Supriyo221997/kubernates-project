@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "kubernates-project",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
