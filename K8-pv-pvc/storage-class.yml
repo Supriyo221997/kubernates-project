@@ -1,0 +1,47 @@
+# storageclass-gp3.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-ssd
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp3
+---
+# pvc-dynamic.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-dynamic-20gi
+spec:
+  storageClassName: gp3-ssd
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+# deployment-dynamic.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-dynamic-pvc
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: dynamic}}
+  template:
+    metadata: {labels: {app: dynamic}}
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh","-c","sleep 3600"]
+        volumeMounts:
+        - mountPath: /data
+          name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pvc-dynamic-20gi

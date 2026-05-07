@@ -1,0 +1,47 @@
+# static-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-local-10gi
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data/pv-local-10gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-local-10gi
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: pv-local-10gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-static-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: nginx-static}
+  template:
+    metadata: {labels: {app: nginx-static}}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:stable
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: webdata
+      volumes:
+      - name: webdata
+        persistentVolumeClaim:
+          claimName: pvc-local-10gi
